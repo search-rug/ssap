@@ -1,0 +1,2 @@
+Manifest-Version: 0.1
+Main-Class: nl.rug.jbi.search.ssap.Main
