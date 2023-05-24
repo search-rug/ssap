@@ -4,7 +4,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.xml.Node
 
-class Instance(val roles: mutable.Buffer[Role], val id:Long, val versions: mutable.Buffer[Version]) {
+class Instance(val roles: mutable.Buffer[ScalaRole], val id:Long, val versions: mutable.Buffer[ScalaVersion]) {
 
   def toXml() = {
     <instance>
@@ -17,7 +17,7 @@ class Instance(val roles: mutable.Buffer[Role], val id:Long, val versions: mutab
     case that: Instance => that.roles.forall(r => roles.contains(r)) && that.roles.size == roles.size
     case that: Node =>
         val roleSeq = that \\ "role"
-        roleSeq.forall(r => roles.contains(Role.fromXml(r))) && roleSeq.size == roles.size
+        roleSeq.forall(r => roles.contains(ScalaRole.fromXml(r))) && roleSeq.size == roles.size
     case _ => false
   }
   override def hashCode = roles.hashCode()
@@ -30,9 +30,9 @@ object Instance {
 
   def fromXml(node: scala.xml.Node):Instance = {
     currId+=1
-    val i:Instance = new Instance(ArrayBuffer[Role](), currId, ArrayBuffer[Version]())
-    (node \\ "role").map(r => i.roles+=Role.fromXml(r))
-    (node \\ "version").map(v => i.versions+=Version.fromXml(v))
+    val i:Instance = new Instance(ArrayBuffer[ScalaRole](), currId, ArrayBuffer[ScalaVersion]())
+    (node \\ "role").map(r => i.roles+=ScalaRole.fromXml(r))
+    (node \\ "version").map(v => i.versions+=ScalaVersion.fromXml(v))
     i
   }
 }

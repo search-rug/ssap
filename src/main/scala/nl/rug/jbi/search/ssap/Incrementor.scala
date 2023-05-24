@@ -43,12 +43,12 @@ object Incrementor {
   /** Updates an instance of Factory Method by adding ConcreteCreator's and Product's. */
   def incrementFactoryMethod(i: Instance, parents: Map[String,Set[String]]) = {
     i.roles.filter(_.name == "Creator").foreach(r => {
-      parents.view.filter(_._2.contains(r.element)).foreach(s => i.roles+= new Role(s._1,"ConcreteCreator"))
+      parents.view.filter(_._2.contains(r.element)).foreach(s => i.roles+= new ScalaRole(s._1,"ConcreteCreator"))
     })
 
     i.roles.filter(_.name == "FactoryMethod()").foreach(r => {
       val ElementRegex(cName,mName,rName) = r.element
-      i.roles+= new Role(rName,"Product")
+      i.roles+= new ScalaRole(rName,"Product")
     })
   }
 
@@ -57,14 +57,14 @@ object Incrementor {
     i.roles.filter(_.name == "Prototype").foreach(r =>
       parents.filter(_._2.contains(r.element)).flatMap(s =>
         ProjectParser.getFirstNonInterfaces(pc,s._1,parents)
-      ).toList.distinct.foreach(cc => i.roles+= new Role(cc,"ConcretePrototype"))
+      ).toList.distinct.foreach(cc => i.roles+= new ScalaRole(cc,"ConcretePrototype"))
     )
 
   }
 
   /** Updates an instance of Composite by adding Leaf's. */
   def incrementComposite(i: Instance, parents: Map[String,Set[String]], pc: ProjectContainer) = {
-    val component = i.roles.find(_.name == "Component").getOrElse(new Role("","")).element
+    val component = i.roles.find(_.name == "Component").getOrElse(new ScalaRole("","")).element
 
     val methods:List[String] = i.roles.filter(_.name == "Operation()").map(r => {
       val ElementRegex(cName,mSign,rName) = r.element
@@ -82,14 +82,14 @@ object Incrementor {
 
     candidates.foreach(c =>
       if (!composites.contains(c))
-        i.roles+= new Role(c,"Leaf")
+        i.roles+= new ScalaRole(c,"Leaf")
     )
 
   }
 
   /** Updates an instance of Decorator by adding ConcreteDecorator's and ConcreteComponent's. */
   def incrementDecorator(i: Instance, parents: Map[String,Set[String]], pc: ProjectContainer) = {
-    val component = i.roles.find(_.name == "Component").getOrElse(new Role("","")).element
+    val component = i.roles.find(_.name == "Component").getOrElse(new ScalaRole("","")).element
 
     val methods:List[String] = i.roles.filter(_.name == "Operation()").map(r => {
       val ElementRegex(cName,mSign,rName) = r.element
@@ -108,14 +108,14 @@ object Incrementor {
     decorators.foreach(d =>
       parents.filter(_._2.contains(d)).flatMap(s =>
         ProjectParser.getFirstNonInterfaces(pc,s._1,parents)
-      ).toList.distinct.foreach(cc => i.roles+= new Role(cc,"ConcreteDecorator"))
+      ).toList.distinct.foreach(cc => i.roles+= new ScalaRole(cc,"ConcreteDecorator"))
     )
 
     val concrDecorators = i.roles.filter(_.name == "ConcreteDecorator").map(_.element)
 
     candidates.foreach(c =>
       if (!decorators.contains(c) && !concrDecorators.contains(c))
-        i.roles+= new Role(c,"ConcreteComponent")
+        i.roles+= new ScalaRole(c,"ConcreteComponent")
     )
   }
 
@@ -124,7 +124,7 @@ object Incrementor {
     i.roles.filter(_.name == "Observer").foreach(r =>
       parents.filter(_._2.contains(r.element)).flatMap(s =>
         ProjectParser.getFirstNonInterfaces(pc,s._1,parents)
-      ).toList.distinct.foreach(cc => i.roles+= new Role(cc,"ConcreteObserver"))
+      ).toList.distinct.foreach(cc => i.roles+= new ScalaRole(cc,"ConcreteObserver"))
     )
 
   }
@@ -134,7 +134,7 @@ object Incrementor {
     i.roles.filter(_.name == "State/Strategy").foreach(r =>
       parents.filter(_._2.contains(r.element)).flatMap(s =>
         ProjectParser.getFirstNonInterfaces(pc,s._1,parents)
-      ).toList.distinct.foreach(cc => i.roles+= new Role(cc,"ConcreteState/Strategy"))
+      ).toList.distinct.foreach(cc => i.roles+= new ScalaRole(cc,"ConcreteState/Strategy"))
     )
 
   }
@@ -144,22 +144,22 @@ object Incrementor {
     i.roles.filter(_.name == "AbstractClass").foreach(r =>
       parents.filter(_._2.contains(r.element)).flatMap(s =>
         ProjectParser.getFirstNonInterfaces(pc,s._1,parents)
-      ).toList.distinct.foreach(cc => i.roles+= new Role(cc,"ConcreteClass"))
+      ).toList.distinct.foreach(cc => i.roles+= new ScalaRole(cc,"ConcreteClass"))
     )
   }
 
   /** Updates an instance of Proxy by adding Subject. */
   def incrementProxy(i: Instance, parents: Map[String,Set[String]], pc: ProjectContainer) = {
-    val proxy = i.roles.find(_.name == "Proxy").getOrElse(new Role("","")).element
-    val realSubject = i.roles.find(_.name == "RealSubject").getOrElse(new Role("","")).element
+    val proxy = i.roles.find(_.name == "Proxy").getOrElse(new ScalaRole("","")).element
+    val realSubject = i.roles.find(_.name == "RealSubject").getOrElse(new ScalaRole("","")).element
     val proxyParents = ProjectParser.getAllSuperclasses(proxy, parents)
     val rsParents = ProjectParser.getAllSuperclasses(realSubject, parents)
-    val ElementRegex(cName,mSign,rName) = i.roles.find(_.name == "Request()").getOrElse(new Role("","::():")).element
+    val ElementRegex(cName,mSign,rName) = i.roles.find(_.name == "Request()").getOrElse(new ScalaRole("","::():")).element
     val MethodRegex(mName,mAttrs) = mSign
 
     proxyParents.intersect(rsParents).foreach(s =>
       if(parents.contains(s) && ProjectParser.getMethodsFromClassFile(pc,s).contains(mName))
-          i.roles+= new Role(s,"Subject")
+          i.roles+= new ScalaRole(s,"Subject")
     )
   }
 }
