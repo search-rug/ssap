@@ -3,7 +3,7 @@ package nl.rug.jbi.search.ssap.model
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-class Pattern(val name: String, val instances: mutable.Buffer[Instance]) {
+class ScalaPattern(val name: String, val instances: mutable.Buffer[ScalaInstance]) {
 
   def toXml() = {
     <pattern name={name}>
@@ -12,17 +12,17 @@ class Pattern(val name: String, val instances: mutable.Buffer[Instance]) {
   }
 
   override def equals(o: Any) = o match {
-    case that: Pattern => that.name == name
+    case that: ScalaPattern => that.name == name
     case _ => false
   }
   override def hashCode = name.hashCode()
 }
 
-object Pattern {
-  def fromXml(node: scala.xml.Node):Pattern = {
-    val p:Pattern = new Pattern((node \ "@name").text, ArrayBuffer[Instance]())
-    Instance.resetId()
-    (node \\ "instance").map(i => p.instances+=Instance.fromXml(i))
+object ScalaPattern {
+  def fromXml(node: scala.xml.Node):ScalaPattern = {
+    val p:ScalaPattern = new ScalaPattern((node \ "@name").text, ArrayBuffer[ScalaInstance]())
+    ScalaInstance.resetId()
+    (node \\ "instance").map(i => p.instances+=ScalaInstance.fromXml(i))
     p
   }
 

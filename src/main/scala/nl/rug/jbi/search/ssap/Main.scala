@@ -11,7 +11,7 @@ object Main extends App {
 
   val logger = LoggerFactory.getLogger("ssa-plus")
 
-  var ssa: Try[model.System] = new Failure(new InvalidParameterException())
+  var ssa: Try[model.ScalaSystem] = new Failure(new InvalidParameterException())
   var pc: Try[ProjectContainer] = new Failure(new InvalidParameterException())
   var out: Option[File] = None
 
@@ -23,7 +23,7 @@ object Main extends App {
 
     arg[File]("<ssa-file>")
       .foreach { x =>
-        ssa = Try(model.System.fromXml(XML.loadFile(x)))
+        ssa = Try(model.ScalaSystem.fromXml(XML.loadFile(x)))
         out = Some(new File(x.getPath.replaceAll("\\.[^.]*$", "") + ".ssap.xml"))
       }
       .text("XML file from SSA tool")
