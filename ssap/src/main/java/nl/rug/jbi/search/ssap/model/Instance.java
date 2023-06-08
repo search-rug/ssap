@@ -3,7 +3,6 @@ package nl.rug.jbi.search.ssap.model;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import org.w3c.dom.Node;
 
 import java.util.HashSet;
 import java.util.List;

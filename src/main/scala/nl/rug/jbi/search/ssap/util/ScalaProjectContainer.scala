@@ -7,7 +7,7 @@ import java.io.{InputStream, File}
   *
   * @author Daniel Feitosa
   */
-abstract class ProjectContainer(val project: File) extends AutoCloseable {
+abstract class ScalaProjectContainer(val project: File) extends AutoCloseable {
   if(!isValid)
     throw new IllegalArgumentException(s"'$project' isn't a valid project")
 

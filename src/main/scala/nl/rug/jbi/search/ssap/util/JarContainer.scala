@@ -9,7 +9,7 @@ import scala.collection.convert.wrapAsScala.enumerationAsScalaIterator
   *
   * @author Daniel Feitosa
   */
-class JarContainer(project: File) extends ProjectContainer(project) {
+class JarContainer(project: File) extends ScalaProjectContainer(project) {
   private val jar = new JarFile(project)
 
   override def isValid = JarContainer.isValid(project)

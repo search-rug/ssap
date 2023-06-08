@@ -2,7 +2,7 @@ package nl.rug.jbi.search.ssap
 
 import java.io.File
 import java.security.InvalidParameterException
-import nl.rug.jbi.search.ssap.util.{ProjectContainer, JarContainer, DirContainer, ProjectParser}
+import nl.rug.jbi.search.ssap.util.{ScalaProjectContainer, JarContainer, ScalaDirContainer, ProjectParser}
 import org.slf4j.LoggerFactory
 import scala.util.{Failure, Try}
 import scala.xml.{PrettyPrinter, XML}
@@ -12,7 +12,7 @@ object Main extends App {
   val logger = LoggerFactory.getLogger("ssa-plus")
 
   var ssa: Try[model.ScalaSystem] = new Failure(new InvalidParameterException())
-  var pc: Try[ProjectContainer] = new Failure(new InvalidParameterException())
+  var pc: Try[ScalaProjectContainer] = new Failure(new InvalidParameterException())
   var out: Option[File] = None
 
   lazy val parents = ProjectParser.getParentsMap(pc.get)
@@ -31,7 +31,7 @@ object Main extends App {
       .validate { x => if (x.getName.matches("(?i).*\\.xml$")) success else failure(s"'${x.getName}' isn't an XML file") }
 
     arg[File]("<project>")
-      .foreach { x => pc = Try(if(JarContainer.isValid(x)) new JarContainer(x) else new DirContainer(x)) }
+      .foreach { x => pc = Try(if(JarContainer.isValid(x)) new JarContainer(x) else new ScalaDirContainer(x)) }
       .text("Folder or .jar containing the project's .class files")
       .validate { x => if (x.exists) success else failure(s"'${x.getName}' doesn't exist")}
 

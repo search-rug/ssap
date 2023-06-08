@@ -7,7 +7,7 @@ import scala.collection.convert.wrapAsScala.collectionAsScalaIterable
 import scala.collection.mutable
 
 /**
-  * Utilities for Java projects ([[ProjectContainer]]) (e.g., get methods from a given class).
+  * Utilities for Java projects ([[ScalaProjectContainer]]) (e.g., get methods from a given class).
   *
   * @author Daniel Feitosa
   */
@@ -35,7 +35,7 @@ object ProjectParser {
     * @param pc Jar or directory containing all class files
     * @return Map of classes to parents
     */
-  def getParentsMap(pc: ProjectContainer) = {
+  def getParentsMap(pc: ScalaProjectContainer) = {
     val map = new mutable.HashMap[String, Set[String]]
     pc.forEachClass(is => {
       val cn = readClassNode(is)
@@ -76,7 +76,7 @@ object ProjectParser {
     * @param classname Class to be processed
     * @return List of method names
     */
-  def getMethodsFromClassFile(pc: ProjectContainer, classname: String): List[String] =
+  def getMethodsFromClassFile(pc: ScalaProjectContainer, classname: String): List[String] =
     try {
       val cn = readClassNode(pc.getClassStream(classname))
       cn.methods.map(_.asInstanceOf[MethodNode].name).toList
@@ -95,7 +95,7 @@ object ProjectParser {
     * @param parents A map of all classes to their respective parents
     * @return Set of class names
     */
-  def getFirstImplementations(pc: ProjectContainer, classname: String, methodname: String, parents: Map[String,Set[String]]): Set[String] ={
+  def getFirstImplementations(pc: ScalaProjectContainer, classname: String, methodname: String, parents: Map[String,Set[String]]): Set[String] ={
     try {
       val cn = readClassNode(pc.getClassStream(classname))
       val mn = cn.methods.find(_.asInstanceOf[MethodNode].name == methodname).get.asInstanceOf[MethodNode]
@@ -119,7 +119,7 @@ object ProjectParser {
     * @param parents A map of all classes to their respective parents
     * @return Set of class names
     */
-  def getFirstNonInterfaces(pc: ProjectContainer, classname: String, parents: Map[String,Set[String]]): Set[String] ={
+  def getFirstNonInterfaces(pc: ScalaProjectContainer, classname: String, parents: Map[String,Set[String]]): Set[String] ={
     try {
       val cn = readClassNode(pc.getClassStream(classname))
 

@@ -1,7 +1,7 @@
 package nl.rug.jbi.search.ssap
 
 import nl.rug.jbi.search.ssap.model._
-import nl.rug.jbi.search.ssap.util.{ProjectContainer, ProjectParser}
+import nl.rug.jbi.search.ssap.util.{ScalaProjectContainer, ProjectParser}
 import org.slf4j.LoggerFactory
 import scala.util.matching.Regex
 
@@ -20,7 +20,7 @@ object Incrementor {
    * @param s List of patterns to be updated
    * @param parents Map of system classes to their parents
    */
-  def incrementPatternList(s: ScalaSystem, parents: Map[String,Set[String]], pc: ProjectContainer) ={
+  def incrementPatternList(s: ScalaSystem, parents: Map[String,Set[String]], pc: ScalaProjectContainer) ={
     s.patterns.foreach(p => {
       p.name match {
         case "Factory Method"  => p.instances.foreach(i => incrementFactoryMethod(i,parents))
@@ -53,7 +53,7 @@ object Incrementor {
   }
 
   /** Updates an instance of Prototype by adding ConcretePrototype's. */
-  def incrementPrototype(i: ScalaInstance, parents: Map[String,Set[String]], pc: ProjectContainer) = {
+  def incrementPrototype(i: ScalaInstance, parents: Map[String,Set[String]], pc: ScalaProjectContainer) = {
     i.roles.filter(_.name == "Prototype").foreach(r =>
       parents.filter(_._2.contains(r.element)).flatMap(s =>
         ProjectParser.getFirstNonInterfaces(pc,s._1,parents)
@@ -63,7 +63,7 @@ object Incrementor {
   }
 
   /** Updates an instance of Composite by adding Leaf's. */
-  def incrementComposite(i: ScalaInstance, parents: Map[String,Set[String]], pc: ProjectContainer) = {
+  def incrementComposite(i: ScalaInstance, parents: Map[String,Set[String]], pc: ScalaProjectContainer) = {
     val component = i.roles.find(_.name == "Component").getOrElse(new ScalaRole("","")).element
 
     val methods:List[String] = i.roles.filter(_.name == "Operation()").map(r => {
@@ -88,7 +88,7 @@ object Incrementor {
   }
 
   /** Updates an instance of Decorator by adding ConcreteDecorator's and ConcreteComponent's. */
-  def incrementDecorator(i: ScalaInstance, parents: Map[String,Set[String]], pc: ProjectContainer) = {
+  def incrementDecorator(i: ScalaInstance, parents: Map[String,Set[String]], pc: ScalaProjectContainer) = {
     val component = i.roles.find(_.name == "Component").getOrElse(new ScalaRole("","")).element
 
     val methods:List[String] = i.roles.filter(_.name == "Operation()").map(r => {
@@ -120,7 +120,7 @@ object Incrementor {
   }
 
   /** Updates an instance of Observer by adding ConcreteObserver's. */
-  def incrementObserver(i: ScalaInstance, parents: Map[String,Set[String]], pc: ProjectContainer) = {
+  def incrementObserver(i: ScalaInstance, parents: Map[String,Set[String]], pc: ScalaProjectContainer) = {
     i.roles.filter(_.name == "Observer").foreach(r =>
       parents.filter(_._2.contains(r.element)).flatMap(s =>
         ProjectParser.getFirstNonInterfaces(pc,s._1,parents)
@@ -130,7 +130,7 @@ object Incrementor {
   }
 
   /** Updates an instance of State/Strategy by adding ConcreteState/Strategy's. */
-  def incrementStateStrategy(i: ScalaInstance, parents: Map[String,Set[String]], pc: ProjectContainer) = {
+  def incrementStateStrategy(i: ScalaInstance, parents: Map[String,Set[String]], pc: ScalaProjectContainer) = {
     i.roles.filter(_.name == "State/Strategy").foreach(r =>
       parents.filter(_._2.contains(r.element)).flatMap(s =>
         ProjectParser.getFirstNonInterfaces(pc,s._1,parents)
@@ -140,7 +140,7 @@ object Incrementor {
   }
 
   /** Updates an instance of Template Method by adding ConcreteClass's. */
-  def incrementTemplateMethod(i: ScalaInstance, parents: Map[String,Set[String]], pc: ProjectContainer) = {
+  def incrementTemplateMethod(i: ScalaInstance, parents: Map[String,Set[String]], pc: ScalaProjectContainer) = {
     i.roles.filter(_.name == "AbstractClass").foreach(r =>
       parents.filter(_._2.contains(r.element)).flatMap(s =>
         ProjectParser.getFirstNonInterfaces(pc,s._1,parents)
@@ -149,7 +149,7 @@ object Incrementor {
   }
 
   /** Updates an instance of Proxy by adding Subject. */
-  def incrementProxy(i: ScalaInstance, parents: Map[String,Set[String]], pc: ProjectContainer) = {
+  def incrementProxy(i: ScalaInstance, parents: Map[String,Set[String]], pc: ScalaProjectContainer) = {
     val proxy = i.roles.find(_.name == "Proxy").getOrElse(new ScalaRole("","")).element
     val realSubject = i.roles.find(_.name == "RealSubject").getOrElse(new ScalaRole("","")).element
     val proxyParents = ProjectParser.getAllSuperclasses(proxy, parents)
