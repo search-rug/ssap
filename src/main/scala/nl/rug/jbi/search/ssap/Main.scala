@@ -2,7 +2,7 @@ package nl.rug.jbi.search.ssap
 
 import java.io.File
 import java.security.InvalidParameterException
-import nl.rug.jbi.search.ssap.util.{ScalaProjectContainer, JarContainer, ScalaDirContainer, ProjectParser}
+import nl.rug.jbi.search.ssap.util.{ScalaProjectContainer, ScalaJarContainer, ScalaDirContainer, ProjectParser}
 import org.slf4j.LoggerFactory
 import scala.util.{Failure, Try}
 import scala.xml.{PrettyPrinter, XML}
@@ -31,7 +31,7 @@ object Main extends App {
       .validate { x => if (x.getName.matches("(?i).*\\.xml$")) success else failure(s"'${x.getName}' isn't an XML file") }
 
     arg[File]("<project>")
-      .foreach { x => pc = Try(if(JarContainer.isValid(x)) new JarContainer(x) else new ScalaDirContainer(x)) }
+      .foreach { x => pc = Try(if(ScalaJarContainer.isValid(x)) new ScalaJarContainer(x) else new ScalaDirContainer(x)) }
       .text("Folder or .jar containing the project's .class files")
       .validate { x => if (x.exists) success else failure(s"'${x.getName}' doesn't exist")}
 

@@ -4,9 +4,6 @@ import java.io.{File, FileInputStream, InputStream}
 import org.apache.commons.io.FileUtils
 import org.apache.commons.io.filefilter.{SuffixFileFilter, TrueFileFilter}
 
-import scala.collection.convert.wrapAsScala.asScalaIterator
-import scala.reflect.internal.util.FileUtils
-
 /**
   * Container for .class files in a directory.
   *
