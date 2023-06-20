@@ -2,7 +2,7 @@ package nl.rug.jbi.search.ssap
 
 import java.io.File
 import java.security.InvalidParameterException
-import nl.rug.jbi.search.ssap.util.{ScalaProjectContainer, ScalaJarContainer, ScalaDirContainer, ProjectParser}
+import nl.rug.jbi.search.ssap.util.{ScalaProjectContainer, ScalaJarContainer, ScalaDirContainer, ScalaProjectParser}
 import org.slf4j.LoggerFactory
 import scala.util.{Failure, Try}
 import scala.xml.{PrettyPrinter, XML}
@@ -15,7 +15,7 @@ object Main extends App {
   var pc: Try[ScalaProjectContainer] = new Failure(new InvalidParameterException())
   var out: Option[File] = None
 
-  lazy val parents = ProjectParser.getParentsMap(pc.get)
+  lazy val parents = ScalaProjectParser.getParentsMap(pc.get)
   lazy val xml = XML.loadString(new PrettyPrinter(400, 2).format(ssa.get.toXml()))
 
   val parser = new scopt.OptionParser[Unit]("java -jar ssap.jar") {

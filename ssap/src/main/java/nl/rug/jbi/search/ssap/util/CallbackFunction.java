@@ -1,5 +1,6 @@
 package nl.rug.jbi.search.ssap.util;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -9,5 +10,5 @@ import java.io.InputStream;
  */
 
 public interface CallbackFunction<A> {
-    A run(InputStream callback);
+    A run(InputStream callback) throws IOException;
 }

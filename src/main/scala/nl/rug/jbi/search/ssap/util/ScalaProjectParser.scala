@@ -11,7 +11,7 @@ import scala.collection.mutable
   *
   * @author Daniel Feitosa
   */
-object ProjectParser {
+object ScalaProjectParser {
 
   implicit class ImpClassNode(val cn: ClassNode) {
     def isInterface = (cn.access & Opcodes.ACC_INTERFACE) == Opcodes.ACC_INTERFACE
