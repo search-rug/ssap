@@ -59,7 +59,7 @@ object Main extends App {
 
   if(parser.parse(args)){
     logger.info("Incrementing SSA data...")
-    Incrementor.incrementPatternList(ssa.get, parents, pc.get)
+    ScalaIncrementor.incrementPatternList(ssa.get, parents, pc.get)
     logger.info(s"Saving to ${out.get.getCanonicalPath}")
     XML.save(out.get.getCanonicalPath, xml, "UTF-8", true)
   }

@@ -18,25 +18,25 @@ import java.util.stream.Collectors;
  */
 public class ProjectParser {
 
-    private ProjectParser projectParser = null;
+    private static ProjectParser projectParser = null;
     private ProjectParser() {}
 
-    public ProjectParser getInstance() {
+    public static ProjectParser getInstance() {
         if (projectParser == null) {
             projectParser = new ProjectParser();
         }
         return projectParser;
     }
 
-    private Boolean isInterface (ClassNode cn) {
+    private static Boolean isInterface (ClassNode cn) {
         return (cn.access & Opcodes.ACC_INTERFACE) == Opcodes.ACC_INTERFACE;
     }
 
-    private Boolean isAbstract(MethodNode mn) {
+    private static Boolean isAbstract(MethodNode mn) {
         return (mn.access & Opcodes.ACC_ABSTRACT) == Opcodes.ACC_ABSTRACT;
     }
 
-    private ClassNode readClassNode(InputStream classIS) throws IOException {
+    private static ClassNode readClassNode(InputStream classIS) throws IOException {
         ClassNode cn = new ClassNode();
         ClassReader cr = new ClassReader(new DataInputStream(classIS));
         cr.accept(cn, ClassReader.SKIP_DEBUG);
@@ -49,7 +49,7 @@ public class ProjectParser {
      * @param pc Jar or directory containing all class files
      * @return Map of classes to parents
      */
-    public HashMap<String, Set<String>> getParentsMap(ProjectContainer pc) throws IOException {
+    public static HashMap<String, Set<String>> getParentsMap(ProjectContainer pc) throws IOException {
         HashMap<String, Set<String>> map = new HashMap<String, Set<String>>();
         CallbackFunction<Void> callback = (is) -> {
             ClassNode cn = readClassNode(is);
@@ -76,7 +76,7 @@ public class ProjectParser {
      * @param parents A map of all classes to their respective parents
      * @return Set of class names
      */
-    public Set<String> getAllSuperclasses(String className, Map<String, Set<String>> parents) {
+    public static Set<String> getAllSuperclasses(String className, Map<String, Set<String>> parents) {
         Set<String> set = parents.getOrDefault(className, new HashSet<>());
         for (String parent : set) {
             set.addAll(getAllSuperclasses(parent, parents));
@@ -91,7 +91,7 @@ public class ProjectParser {
      * @param parents A map of all classes to their respective parents
      * @return List of classes
      */
-    public Set<String> getSubclasses(String className, Map<String, Set<String>> parents) {
+    public static Set<String> getSubclasses(String className, Map<String, Set<String>> parents) {
         return parents.entrySet()
                 .stream()
                 .filter(entry -> entry.getValue().contains(className))
@@ -106,7 +106,7 @@ public class ProjectParser {
      * @param className Class to be processed
      * @return List of method names
      */
-    public List<String> getMethodsFromClassFile(ProjectContainer pc, String className) {
+    public static List<String> getMethodsFromClassFile(ProjectContainer pc, String className) {
         try {
             ClassNode cn = readClassNode(pc.getClassStream(className));
             return cn.methods.stream()
@@ -128,7 +128,7 @@ public class ProjectParser {
      * @param parents A map of all classes to their respective parents
      * @return Set of class names
      */
-    public Set<String> getFirstImplementation(ProjectContainer pc, String className, String methodName, Map<String, Set<String>> parents) {
+    public static Set<String> getFirstImplementation(ProjectContainer pc, String className, String methodName, Map<String, Set<String>> parents) {
         try {
             ClassNode cn = readClassNode(pc.getClassStream(className));
             MethodNode mn = cn.methods.stream()
@@ -150,7 +150,7 @@ public class ProjectParser {
         }
     }
 
-    public Set<String> getFirstNonInterfaces(ProjectContainer pc, String className, Map<String, Set<String>> parents) {
+    public static Set<String> getFirstNonInterfaces(ProjectContainer pc, String className, Map<String, Set<String>> parents) {
         try {
             ClassNode cn = readClassNode(pc.getClassStream(className));
             if(isInterface(cn)) {

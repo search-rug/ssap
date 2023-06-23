@@ -5,9 +5,9 @@ import nl.rug.jbi.search.ssap.util.{ScalaProjectContainer, ScalaProjectParser}
 import org.slf4j.LoggerFactory
 import scala.util.matching.Regex
 
-object Incrementor {
+object ScalaIncrementor {
 
-  val logger = LoggerFactory.getLogger(Incrementor.getClass)
+  val logger = LoggerFactory.getLogger(ScalaIncrementor.getClass)
 
   private final val ElementRegex: Regex = """(.*)::(.*):(.*)""".r
   private final val ElementRegex_NoReturn: Regex = """(.*)::(.*)""".r

@@ -8,7 +8,7 @@ import java.util.List;
 @XStreamAlias("system")
 public class System {
     @XStreamImplicit
-    private List<Pattern> patternList;
+    public List<Pattern> patternList;
 
     private System (List<Pattern> patternList) {
         this.patternList = patternList;

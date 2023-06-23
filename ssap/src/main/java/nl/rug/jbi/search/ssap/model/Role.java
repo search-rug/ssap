@@ -7,11 +7,11 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 public class Role {
 
     @XStreamAsAttribute
-    private final String element;
+    public final String element;
     @XStreamAsAttribute
-    private final String name;
+    public final String name;
 
-    private Role(String element, String name) {
+    public Role(String element, String name) {
         this.element = element;
         this.name = name;
     }

@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Objects;
 
 public class Pattern {
-    private final String name;
+    public final String name;
     @XStreamImplicit
-    private List<Instance> instanceList;
+    public List<Instance> instanceList;
 
     private Pattern (String name, List<Instance> instanceList) {
         this.name = name;

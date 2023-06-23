@@ -43,6 +43,11 @@
       <artifactId>asm-tree</artifactId>
       <version>9.5</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.directory.studio</groupId>
+      <artifactId>org.slf4j.api</artifactId>
+      <version>1.7.2</version>
+    </dependency>
   </dependencies>
 
   <build>

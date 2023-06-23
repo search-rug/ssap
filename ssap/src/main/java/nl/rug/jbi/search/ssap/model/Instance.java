@@ -17,7 +17,7 @@ public class Instance {
     private static long currId = -1;
 
     @XStreamImplicit
-    private List<Role> roleList;
+    public List<Role> roleList;
     @XStreamImplicit
     private List<Version> versionList;
 
@@ -30,10 +30,6 @@ public class Instance {
 
     public static void resetId () {
         currId = -1;
-    }
-
-    public List<Role> getRoleList () {
-        return roleList;
     }
 
     @Override
