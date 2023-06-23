@@ -16,9 +16,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-//TODO Un-hardcode strings
+
 public class Incrementor {
 
     private static Incrementor incrementor = null;
@@ -41,53 +40,61 @@ public class Incrementor {
     public void incrementPatternList(System system, Map<String, Set<String>> parents, ProjectContainer pc) {
         system.patternList.forEach(p -> {
             switch (p.name) {
-                case "Factory Method": p.instanceList.stream().forEach(i -> incrementFactoryMethod(i,parents));
-                case "Prototype": p.instanceList.stream().forEach(i -> incrementPrototype(i,parents,pc));
+                case Constants.FACTORY_METHOD: p.instanceList.stream().forEach(i -> incrementFactoryMethod(i,parents));
+                    break;
+                case Constants.PROTOTYPE: p.instanceList.stream().forEach(i -> incrementPrototype(i,parents,pc));
                     //case "Singleton": //Nothing to be done
                     //case "(Object)Adapter-Command": //Nothing to be done
-                case "Composite": p.instanceList.stream().forEach(i -> incrementComposite(i,parents,pc));
-                case "Decorator": p.instanceList.stream().forEach(i -> incrementDecorator(i,parents,pc));
-                case "Observer": p.instanceList.stream().forEach(i -> incrementObserver(i,parents,pc));
-                case "State-Strategy": p.instanceList.stream().forEach(i -> incrementStateStrategy(i,parents,pc));
-                case "Template Method": p.instanceList.stream().forEach(i -> incrementTemplateMethod(i,parents,pc));
+                    break;
+                case Constants.COMPOSITE: p.instanceList.stream().forEach(i -> incrementComposite(i,parents,pc));
+                    break;
+                case Constants.DECORATOR: p.instanceList.stream().forEach(i -> incrementDecorator(i,parents,pc));
+                    break;
+                case Constants.OBSERVER: p.instanceList.stream().forEach(i -> incrementObserver(i,parents,pc));
+                    break;
+                case Constants.STATE_STRATEGY: p.instanceList.stream().forEach(i -> incrementStateStrategy(i,parents,pc));
+                    break;
+                case Constants.TEMPLATE_METHOD: p.instanceList.stream().forEach(i -> incrementTemplateMethod(i,parents,pc));
                     //case "Visitor": TODO (not necessary for the study)
-                case "Proxy": p.instanceList.stream().forEach(i -> incrementProxy(i,parents,pc));
-                case "Proxy2": p.instanceList.stream().forEach(i -> incrementProxy(i,parents,pc));
+                    break;
+                case Constants.PROXY:
+                case Constants.PROXY2: p.instanceList.stream().forEach(i -> incrementProxy(i,parents,pc));
+                    break;
             }
         });
     }
 
     /** Updates an instance of Factory Method by adding ConcreteCreator's and Product's. */
     private void incrementFactoryMethod(Instance instance, Map<String, Set<String>> parents) {
-        instance.roleList.stream().filter(role -> role.name.equals("Creator")).forEach(r -> {
+        instance.roleList.stream().filter(role -> role.name.equals(Constants.CREATOR)).forEach(r -> {
             for (Map.Entry<String, Set<String>>  parent : parents.entrySet()) {
                 if (parent.getValue().contains(r.element)) {
-                    instance.roleList.add(new Role(parent.getKey(), "ConcreteCreator"));
+                    instance.roleList.add(new Role(parent.getKey(), Constants.CONCRETE_CREATOR));
                 }
             }
         });
 
-        instance.roleList.stream().filter(role -> role.name.equals("FactoryMethod()")).forEach(r -> {
+        instance.roleList.stream().filter(role -> role.name.equals(Constants.FACTORY_METHOD_PARENTHESIS)).forEach(r -> {
             Matcher matcher = elementRegex.matcher(r.element);
             String rName = matcher.group(3);
-            instance.roleList.add(new Role(rName, "Product"));
+            instance.roleList.add(new Role(rName, Constants.PRODUCT));
         });
     }
 
     /** Updates an instance of Prototype by adding ConcretePrototype's. */
     private void incrementPrototype(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
-        addRolesFromNonInterfaces(instance, parents, pc, "Prototype", "ConcretePrototype");
+        addRolesFromNonInterfaces(instance, parents, pc, Constants.PROTOTYPE, Constants.CONCRETE_PROTOTYPE);
     }
 
     private void incrementComposite(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         List<String> candidates = getCandidates(instance, parents, pc);
         List<String> composites = instance.roleList.stream()
-                .filter(parent -> parent.name.equals("Composite"))
+                .filter(parent -> parent.name.equals(Constants.COMPOSITE))
                 .map(parent -> parent.element)
                 .collect(Collectors.toList());
         candidates.forEach(c -> {
             if (!composites.contains(c)) {
-                instance.roleList.add(new Role(c, "Leaf"));
+                instance.roleList.add(new Role(c, Constants.LEAF));
             }
         });
 
@@ -96,7 +103,7 @@ public class Incrementor {
     private void incrementDecorator(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         List<String> candidates = getCandidates(instance, parents, pc);
         List<String> decorators = instance.roleList.stream()
-                .filter(r -> r.name.equals("Decorator"))
+                .filter(r -> r.name.equals(Constants.DECORATOR))
                 .map(r -> r.element)
                 .collect(Collectors.toList());
         decorators.stream()
@@ -106,24 +113,24 @@ public class Incrementor {
                             .map(p -> ProjectParser.getFirstNonInterfaces(pc, p.getKey(), parents))
                             .flatMap(Collection::stream)
                             .distinct()
-                            .forEach(cc -> instance.roleList.add(new Role(cc, "ConcreteDecorator")));
+                            .forEach(cc -> instance.roleList.add(new Role(cc, Constants.CONCRETE_DECORATOR)));
                 });
         List<String> concrDecorators = instance.roleList.stream()
-                .filter(r -> r.name.equals("ConcreteDecorator"))
+                .filter(r -> r.name.equals(Constants.CONCRETE_DECORATOR))
                 .map(r -> r.element)
                 .collect(Collectors.toList());
         candidates.stream()
                 .forEach(c -> {
                     if (!decorators.contains(c) && !concrDecorators.contains(c)) {
-                        instance.roleList.add(new Role(c, "ConcreteComponent"));
+                        instance.roleList.add(new Role(c, Constants.CONCRETE_COMPONENT));
                     }
                 });
     }
 
     private List<String> getCandidates(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
-        String component = findFirstElement(instance, "Component");
+        String component = findFirstElement(instance, Constants.COMPONENT);
         List<String> methods = instance.roleList.stream()
-                .filter(r -> r.name.equals("Operation()"))
+                .filter(r -> r.name.equals(Constants.OPERATION_PARENTHESIS))
                 .map(role -> {
                     Matcher elemnetMatcher = elementRegex.matcher(role.element);
                     String mSign = elemnetMatcher.group(2);
@@ -149,15 +156,15 @@ public class Incrementor {
     }
 
     private void incrementObserver(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
-        addRolesFromNonInterfaces(instance, parents, pc, "Observer", "ConcreteObserver");
+        addRolesFromNonInterfaces(instance, parents, pc, Constants.OBSERVER, Constants.CONCRETE_OBSERVER);
     }
 
     private void incrementStateStrategy(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
-        addRolesFromNonInterfaces(instance, parents, pc, "State/Strategy", "ConcreteState/Strategy");
+        addRolesFromNonInterfaces(instance, parents, pc, Constants.STATE_SLASH_STRATEGY, Constants.CONCRETE_STATE_SLASH_STRATEGY);
     }
 
     private void incrementTemplateMethod(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
-        addRolesFromNonInterfaces(instance, parents, pc, "AbstractClass", "ConcreteClass");
+        addRolesFromNonInterfaces(instance, parents, pc, Constants.ABSTRACT_CLASS, Constants.CONCRETE_CLASS);
     }
 
     private void addRolesFromNonInterfaces(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc, String filter, String roleName) {
@@ -172,21 +179,21 @@ public class Incrementor {
     }
 
     private void incrementProxy(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
-        String proxy = findFirstElement(instance, "Proxy");
-        String realSubject = findFirstElement(instance, "RealSubject");
+        String proxy = findFirstElement(instance, Constants.PROXY);
+        String realSubject = findFirstElement(instance, Constants.REAL_SUBJECT);
         Set<String> proxyParents = ProjectParser.getAllSuperclasses(proxy, parents);
         Set<String> rsParents = ProjectParser.getAllSuperclasses(realSubject, parents);
-        String roleElement = findFirstElement(instance, "Request()");
+        String roleElement = findFirstElement(instance, Constants.REQUEST_PARANTHESIS);
         Matcher elementMatcher = elementRegex.matcher(roleElement);
         String mSign = elementMatcher.group(2);
         Matcher methodMatcher = methodRegex.matcher(mSign);
         String mName = methodMatcher.group(1);
 
         proxyParents.stream()
-                .filter(pp -> rsParents.contains(pp))
+                .filter(rsParents::contains)
                 .forEach(s -> {
                     if (parents.containsKey(s) && ProjectParser.getMethodsFromClassFile(pc, s).contains(mName)) {
-                        instance.roleList.add(new Role(s, "Subject"));
+                        instance.roleList.add(new Role(s, Constants.SUBJECT));
                     }
 
                 });
