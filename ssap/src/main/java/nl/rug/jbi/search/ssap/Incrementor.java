@@ -39,6 +39,7 @@ public class Incrementor {
 
     public static void incrementPatternList(System system, Map<String, Set<String>> parents, ProjectContainer pc) {
         system.patternList.forEach(p -> {
+            if (p.instanceList == null || p.instanceList.isEmpty()) return;
             switch (p.name) {
                 case Constants.FACTORY_METHOD: p.instanceList.stream().forEach(i -> incrementFactoryMethod(i,parents));
                     break;
@@ -76,8 +77,12 @@ public class Incrementor {
 
         instance.roleList.stream().filter(role -> role.name.equals(Constants.FACTORY_METHOD_PARENTHESIS)).forEach(r -> {
             Matcher matcher = elementRegex.matcher(r.element);
-            String rName = matcher.group(3);
-            instance.roleList.add(new Role(rName, Constants.PRODUCT));
+            try {
+                String rName = matcher.group(3);
+                instance.roleList.add(new Role(rName, Constants.PRODUCT));
+            } catch (Exception e) {
+                logger.debug("FactoryMethod: no elementRegex match");
+            }
         });
     }
 
@@ -133,11 +138,17 @@ public class Incrementor {
                 .filter(r -> r.name.equals(Constants.OPERATION_PARENTHESIS))
                 .map(role -> {
                     Matcher elemnetMatcher = elementRegex.matcher(role.element);
-                    String mSign = elemnetMatcher.group(2);
-                    Matcher methodMatcher = methodRegex.matcher(mSign);
-                    String mName = methodMatcher.group(1);
-                    return mName;
+                    try {
+                        String mSign = elemnetMatcher.group(2);
+                        Matcher methodMatcher = methodRegex.matcher(mSign);
+                        String mName = methodMatcher.group(1);
+                        return mName;
+                    } catch (Exception e) {
+                        logger.debug("getCandidates: no elementRegex or methodRegex match");
+                        return "";
+                    }
                 })
+                .filter(s -> !s.equals(""))
                 .collect(Collectors.toList());
         List<String> candidates = methods.stream()
                 .map(s -> ProjectParser.getFirstImplementation(pc, component, s, parents))
@@ -184,10 +195,16 @@ public class Incrementor {
         Set<String> proxyParents = ProjectParser.getAllSuperclasses(proxy, parents);
         Set<String> rsParents = ProjectParser.getAllSuperclasses(realSubject, parents);
         String roleElement = findFirstElement(instance, Constants.REQUEST_PARANTHESIS);
-        Matcher elementMatcher = elementRegex.matcher(roleElement);
-        String mSign = elementMatcher.group(2);
-        Matcher methodMatcher = methodRegex.matcher(mSign);
-        String mName = methodMatcher.group(1);
+        String mName;
+        try {
+            Matcher elementMatcher = elementRegex.matcher(roleElement);
+            String mSign = elementMatcher.group(2);
+            Matcher methodMatcher = methodRegex.matcher(mSign);
+            mName = methodMatcher.group(1);
+        } catch (Exception e) {
+            logger.debug("incrementProxy: no elementRegex or methodRegex match");
+            return;
+        }
 
         proxyParents.stream()
                 .filter(rsParents::contains)

@@ -34,7 +34,7 @@ public class Main implements Callable<Integer> {
     @Parameters(index = "1", description = "Folder or .jar containing the project's .class files")
     private File project;
 
-    @Option(names = {"-o", "--output"}, description = "Output XML file")
+    @Option(names = {"-o", "--output"}, description = "Output XML file (default: write to the ssaFile)")
     private File outputFile;
 
     public static void main(String[] args) {
@@ -95,7 +95,7 @@ public class Main implements Callable<Integer> {
         parents = ProjectParser.getParentsMap(pc);
         Incrementor.incrementPatternList(ssa, parents, pc);
 
-        if (!outputFile.exists()) {
+        if (!outputFileIsValid()) {
             String outputFilePath = ssaFile.getName().replaceAll("\\.[^.]*$", "") + ".ssap.xml";
             outputFile = new File(outputFilePath);
         }
@@ -109,5 +109,17 @@ public class Main implements Callable<Integer> {
             return 1;
         }
         return 0;
+    }
+
+    private boolean outputFileIsValid() {
+        if (outputFile == null) {
+            logger.info("No output file provided.");
+            return false;
+        }
+        if (outputFile.exists() && outputFile.getName().matches("(?i).*\\.xml$") && outputFile.canWrite()) {
+            return true;
+        }
+        logger.info("Provided output file is not a valid xml file.");
+        return false;
     }
 }
