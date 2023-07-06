@@ -1,9 +1,6 @@
 package nl.rug.jbi.search.ssap.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Iterator;
 
 import org.apache.commons.io.FileUtils;
@@ -19,17 +16,17 @@ import static org.apache.commons.io.FileUtils.iterateFiles;
  */
 public class DirContainer extends ProjectContainer {
 
-    protected DirContainer(File project) {
+    public DirContainer(File project) {
         super(project);
     }
 
     @Override
     public Boolean isValid() {
-        return isDirValid(project);
+        return isValid(project);
     }
 
     @Override
-    public <A> void forEachClass(CallbackFunction<A> callback) throws FileNotFoundException {
+    public <A> void forEachClass(CallbackFunction<A> callback) throws IOException {
         Iterator<File> fileIterator = iterateFiles(project, new SuffixFileFilter(".class"), TrueFileFilter.TRUE);
         for (Iterator<File> it = fileIterator; it.hasNext(); ) {
             File file = it.next();
@@ -40,13 +37,13 @@ public class DirContainer extends ProjectContainer {
     @Override
     public InputStream getClassStream(String classname) throws FileNotFoundException {
         String suffix = classname.replaceAll("\\.", "/") + ".class";
-        return new FileInputStream(FileUtils.listFiles(project, new ScalaPathSuffixFilter(suffix), TrueFileFilter.TRUE).iterator().next());
+        return new FileInputStream(FileUtils.listFiles(project, new PathSuffixFilter(suffix), TrueFileFilter.TRUE).iterator().next());
     }
 
     @Override
     public void close() {}
 
-    private static Boolean isDirValid(File project) {
+    public static Boolean isValid(File project) {
         return project.isDirectory();
     }
 }

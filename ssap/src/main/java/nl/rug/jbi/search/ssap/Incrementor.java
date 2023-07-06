@@ -6,8 +6,8 @@ import nl.rug.jbi.search.ssap.model.System;
 import nl.rug.jbi.search.ssap.util.Constants;
 import nl.rug.jbi.search.ssap.util.ProjectContainer;
 import nl.rug.jbi.search.ssap.util.ProjectParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Collection;
 import java.util.List;
@@ -22,7 +22,7 @@ public class Incrementor {
 
     private static Incrementor incrementor = null;
 
-    public static final Logger logger = LoggerFactory.getLogger(Incrementor.class);
+    public static final Logger logger = LogManager.getLogger(Incrementor.class);
 
     private static final Pattern elementRegex = Pattern.compile("(.*)::(.*):(.*)");
     private static final Pattern elementRegex_NoReturn = Pattern.compile("(.*)::(.*)");
@@ -37,7 +37,7 @@ public class Incrementor {
         return incrementor;
     }
 
-    public void incrementPatternList(System system, Map<String, Set<String>> parents, ProjectContainer pc) {
+    public static void incrementPatternList(System system, Map<String, Set<String>> parents, ProjectContainer pc) {
         system.patternList.forEach(p -> {
             switch (p.name) {
                 case Constants.FACTORY_METHOD: p.instanceList.stream().forEach(i -> incrementFactoryMethod(i,parents));
@@ -65,7 +65,7 @@ public class Incrementor {
     }
 
     /** Updates an instance of Factory Method by adding ConcreteCreator's and Product's. */
-    private void incrementFactoryMethod(Instance instance, Map<String, Set<String>> parents) {
+    private static void incrementFactoryMethod(Instance instance, Map<String, Set<String>> parents) {
         instance.roleList.stream().filter(role -> role.name.equals(Constants.CREATOR)).forEach(r -> {
             for (Map.Entry<String, Set<String>>  parent : parents.entrySet()) {
                 if (parent.getValue().contains(r.element)) {
@@ -82,11 +82,11 @@ public class Incrementor {
     }
 
     /** Updates an instance of Prototype by adding ConcretePrototype's. */
-    private void incrementPrototype(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
+    private static void incrementPrototype(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         addRolesFromNonInterfaces(instance, parents, pc, Constants.PROTOTYPE, Constants.CONCRETE_PROTOTYPE);
     }
 
-    private void incrementComposite(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
+    private static void incrementComposite(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         List<String> candidates = getCandidates(instance, parents, pc);
         List<String> composites = instance.roleList.stream()
                 .filter(parent -> parent.name.equals(Constants.COMPOSITE))
@@ -100,7 +100,7 @@ public class Incrementor {
 
     }
 
-    private void incrementDecorator(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
+    private static void incrementDecorator(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         List<String> candidates = getCandidates(instance, parents, pc);
         List<String> decorators = instance.roleList.stream()
                 .filter(r -> r.name.equals(Constants.DECORATOR))
@@ -127,7 +127,7 @@ public class Incrementor {
                 });
     }
 
-    private List<String> getCandidates(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
+    private static List<String> getCandidates(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         String component = findFirstElement(instance, Constants.COMPONENT);
         List<String> methods = instance.roleList.stream()
                 .filter(r -> r.name.equals(Constants.OPERATION_PARENTHESIS))
@@ -155,19 +155,19 @@ public class Incrementor {
         return candidates;
     }
 
-    private void incrementObserver(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
+    private static void incrementObserver(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         addRolesFromNonInterfaces(instance, parents, pc, Constants.OBSERVER, Constants.CONCRETE_OBSERVER);
     }
 
-    private void incrementStateStrategy(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
+    private static void incrementStateStrategy(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         addRolesFromNonInterfaces(instance, parents, pc, Constants.STATE_SLASH_STRATEGY, Constants.CONCRETE_STATE_SLASH_STRATEGY);
     }
 
-    private void incrementTemplateMethod(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
+    private static void incrementTemplateMethod(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         addRolesFromNonInterfaces(instance, parents, pc, Constants.ABSTRACT_CLASS, Constants.CONCRETE_CLASS);
     }
 
-    private void addRolesFromNonInterfaces(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc, String filter, String roleName) {
+    private static void addRolesFromNonInterfaces(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc, String filter, String roleName) {
         instance.roleList.stream().filter(role -> role.name.equals(filter)).forEach(r -> {
             parents.entrySet().stream()
                     .filter(parent -> parent.getValue().contains(r.element))
@@ -178,7 +178,7 @@ public class Incrementor {
         });
     }
 
-    private void incrementProxy(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
+    private static void incrementProxy(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         String proxy = findFirstElement(instance, Constants.PROXY);
         String realSubject = findFirstElement(instance, Constants.REAL_SUBJECT);
         Set<String> proxyParents = ProjectParser.getAllSuperclasses(proxy, parents);
@@ -199,7 +199,7 @@ public class Incrementor {
                 });
     }
 
-    private String findFirstElement(Instance instance, String filter) {
+    private static String findFirstElement(Instance instance, String filter) {
         return instance.roleList.stream()
                 .filter(r -> r.name.equals(filter))
                 .findFirst()

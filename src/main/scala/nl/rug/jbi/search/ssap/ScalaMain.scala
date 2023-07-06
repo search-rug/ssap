@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory
 import scala.util.{Failure, Try}
 import scala.xml.{PrettyPrinter, XML}
 
-object Main extends App {
+object ScalaMain extends App {
 
   val logger = LoggerFactory.getLogger("ssa-plus")
 

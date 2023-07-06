@@ -22,7 +22,7 @@ public class JarContainer extends ProjectContainer{
         return isValid(project);
     }
 
-    private static Boolean isValid(File project) {
+    public static Boolean isValid(File project) {
         return project.isFile() && project.getName().matches("(?i).*\\.jar$");
     }
 

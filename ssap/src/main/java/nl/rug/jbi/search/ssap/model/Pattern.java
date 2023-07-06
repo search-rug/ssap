@@ -1,12 +1,16 @@
 package nl.rug.jbi.search.ssap.model;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import nl.rug.jbi.search.ssap.util.Constants;
 
 import java.util.List;
 import java.util.Objects;
 
+@XStreamAlias("pattern")
 public class Pattern {
+    @XStreamAsAttribute
     public final String name;
     @XStreamImplicit
     public List<Instance> instanceList;
