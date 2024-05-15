@@ -26,6 +26,7 @@ public class Main implements Callable<Integer> {
 
     private static final Logger logger = LogManager.getLogger(Main.class);
 
+    // xStream is used to read and write xml files
     private static XStream xStream;
 
     @Parameters(index = "0", description = "XML file from SSA tool")
@@ -59,6 +60,7 @@ public class Main implements Callable<Integer> {
         ProjectContainer pc;
         Map<String, Set<String>> parents;
 
+        // If ssaFile is valid, we extract the information from the XML into the ssa variable
         if (ssaFile.exists()) {
             if (ssaFile.getName().matches("(?i).*\\.xml$")) {
                 try {
@@ -76,6 +78,7 @@ public class Main implements Callable<Integer> {
             return 1;
         }
 
+        // If project is either a directory or a .jar file, then
         if (project.exists()) {
             if (JarContainer.isValid(project)) {
                 pc = new JarContainer(project);
@@ -92,7 +95,14 @@ public class Main implements Callable<Integer> {
         }
 
         logger.info("Incrementing SSA data...");
-        parents = ProjectParser.getParentsMap(pc);
+
+        try {
+            parents = ProjectParser.getParentsMap(pc);
+        } catch (IOException e) {
+            logger.error("An error was encountered while reading the project", e);
+            return 1;
+        }
+
         Incrementor.incrementPatternList(ssa, parents, pc);
 
         if (!outputFileIsValid()) {

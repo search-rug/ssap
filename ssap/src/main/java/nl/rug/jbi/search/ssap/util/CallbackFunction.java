@@ -10,5 +10,5 @@ import java.io.InputStream;
  */
 
 public interface CallbackFunction<A> {
-    A run(InputStream callback) throws IOException;
+    void run(InputStream callback) throws IOException;
 }

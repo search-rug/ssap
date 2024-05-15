@@ -37,6 +37,14 @@ public class Incrementor {
         return incrementor;
     }
 
+    /**
+     * Increments a provided list of pattern instances by adding extra information regarding instances elements.
+     * The additions are described in the document 'SSA+.md'
+     *
+     * @param system List of patterns to be updated
+     * @param parents Map of system classes to their parents
+     * @param pc The project being analyzed
+     */
     public static void incrementPatternList(System system, Map<String, Set<String>> parents, ProjectContainer pc) {
         system.patternList.forEach(p -> {
             if (p.instanceList == null || p.instanceList.isEmpty()) return;
@@ -44,9 +52,9 @@ public class Incrementor {
                 case Constants.FACTORY_METHOD: p.instanceList.stream().forEach(i -> incrementFactoryMethod(i,parents));
                     break;
                 case Constants.PROTOTYPE: p.instanceList.stream().forEach(i -> incrementPrototype(i,parents,pc));
-                    //case "Singleton": //Nothing to be done
-                    //case "(Object)Adapter-Command": //Nothing to be done
                     break;
+                // case "Singleton": Nothing to be done
+                // case "(Object)Adapter-Command": Nothing to be done
                 case Constants.COMPOSITE: p.instanceList.stream().forEach(i -> incrementComposite(i,parents,pc));
                     break;
                 case Constants.DECORATOR: p.instanceList.stream().forEach(i -> incrementDecorator(i,parents,pc));
@@ -56,8 +64,8 @@ public class Incrementor {
                 case Constants.STATE_STRATEGY: p.instanceList.stream().forEach(i -> incrementStateStrategy(i,parents,pc));
                     break;
                 case Constants.TEMPLATE_METHOD: p.instanceList.stream().forEach(i -> incrementTemplateMethod(i,parents,pc));
-                    //case "Visitor": TODO (not necessary for the study)
                     break;
+                //case "Visitor": TODO (not necessary for the study)
                 case Constants.PROXY:
                 case Constants.PROXY2: p.instanceList.stream().forEach(i -> incrementProxy(i,parents,pc));
                     break;
@@ -91,6 +99,7 @@ public class Incrementor {
         addRolesFromNonInterfaces(instance, parents, pc, Constants.PROTOTYPE, Constants.CONCRETE_PROTOTYPE);
     }
 
+    /** Updates an instance of Composite by adding Leaves. */
     private static void incrementComposite(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         List<String> candidates = getCandidates(instance, parents, pc);
         List<String> composites = instance.roleList.stream()
@@ -105,6 +114,7 @@ public class Incrementor {
 
     }
 
+    /** Updates an instance of Decorator by adding ConcreteDecorator's and ConcreteComponent's. */
     private static void incrementDecorator(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         List<String> candidates = getCandidates(instance, parents, pc);
         List<String> decorators = instance.roleList.stream()
@@ -132,6 +142,7 @@ public class Incrementor {
                 });
     }
 
+    /** Find candidates to add for the Composite or Decorator patterns */
     private static List<String> getCandidates(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         String component = findFirstElement(instance, Constants.COMPONENT);
         List<String> methods = instance.roleList.stream()
@@ -166,18 +177,22 @@ public class Incrementor {
         return candidates;
     }
 
+    /** Updates an instance of Observer by adding ConcreteObserver's. */
     private static void incrementObserver(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         addRolesFromNonInterfaces(instance, parents, pc, Constants.OBSERVER, Constants.CONCRETE_OBSERVER);
     }
 
+    /** Updates an instance of State/Strategy by adding ConcreteState/Strategy's. */
     private static void incrementStateStrategy(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         addRolesFromNonInterfaces(instance, parents, pc, Constants.STATE_SLASH_STRATEGY, Constants.CONCRETE_STATE_SLASH_STRATEGY);
     }
 
+    /** Updates an instance of Template Method by adding ConcreteClass's. */
     private static void incrementTemplateMethod(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         addRolesFromNonInterfaces(instance, parents, pc, Constants.ABSTRACT_CLASS, Constants.CONCRETE_CLASS);
     }
 
+    /** Add new roles from non-interface classes */
     private static void addRolesFromNonInterfaces(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc, String filter, String roleName) {
         instance.roleList.stream().filter(role -> role.name.equals(filter)).forEach(r -> {
             parents.entrySet().stream()
@@ -189,11 +204,12 @@ public class Incrementor {
         });
     }
 
+    /** Updates an instance of Proxy by adding Subject. */
     private static void incrementProxy(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
         String proxy = findFirstElement(instance, Constants.PROXY);
         String realSubject = findFirstElement(instance, Constants.REAL_SUBJECT);
-        Set<String> proxyParents = ProjectParser.getAllSuperclasses(proxy, parents);
-        Set<String> rsParents = ProjectParser.getAllSuperclasses(realSubject, parents);
+        Set<String> proxyParents = ProjectParser.getAllAncestors(proxy, parents);
+        Set<String> rsParents = ProjectParser.getAllAncestors(realSubject, parents);
         String roleElement = findFirstElement(instance, Constants.REQUEST_PARANTHESIS);
         String mName;
         try {
@@ -216,6 +232,7 @@ public class Incrementor {
                 });
     }
 
+    /** Find the first element of the instance that matches the given filter. */
     private static String findFirstElement(Instance instance, String filter) {
         return instance.roleList.stream()
                 .filter(r -> r.name.equals(filter))

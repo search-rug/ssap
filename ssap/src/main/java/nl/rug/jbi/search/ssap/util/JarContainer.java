@@ -30,7 +30,10 @@ public class JarContainer extends ProjectContainer{
     public <A> void forEachClass(CallbackFunction<A> callback) throws IOException {
         for (Iterator<JarEntry> it = jar.entries().asIterator(); it.hasNext(); ) {
             JarEntry entry = it.next();
-            callback.run(getClassStream(entry.getName()));
+
+            if (entry.getName().endsWith(".class")) {
+                callback.run(getClassStream(entry.getName()));
+            }
         }
     }
 

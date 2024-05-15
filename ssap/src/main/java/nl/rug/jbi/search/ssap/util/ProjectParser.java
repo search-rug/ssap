@@ -1,5 +1,7 @@
 package nl.rug.jbi.search.ssap.util;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
  */
 public class ProjectParser {
 
+    private static final Logger log = LogManager.getLogger(ProjectParser.class);
     private static ProjectParser projectParser = null;
     private ProjectParser() {}
 
@@ -56,12 +59,15 @@ public class ProjectParser {
             String n = cn.name.replaceAll("/", ".");
             Set<String> p = new HashSet<>();
             p.add(cn.superName.replaceAll("/", "."));
-            String[] interfaces = (String[]) cn.interfaces.toArray();
+            String[] interfaces = cn.interfaces.toArray(new String[0]);
             for (String interfaceName : interfaces) {
                 p.add(interfaceName.replaceAll("/", "."));
             }
+
+            // If a class has no superclasses within the project, java.lang.Object is added to the set, which we do not need
+            p.remove("java.lang.Object");
+
             map.put(n, p);
-            return null;
         };
 
         pc.forEachClass(callback);
@@ -70,16 +76,16 @@ public class ProjectParser {
     }
 
     /**
-     * Get all parents (incl. interfaces) of a class, recursively checking parents as well.
+     * Get all ancestors of a class, recursively checking its parents.
      *
      * @param className Class to be processed
      * @param parents A map of all classes to their respective parents
      * @return Set of class names
      */
-    public static Set<String> getAllSuperclasses(String className, Map<String, Set<String>> parents) {
+    public static Set<String> getAllAncestors(String className, Map<String, Set<String>> parents) {
         Set<String> set = parents.getOrDefault(className, new HashSet<>());
         for (String parent : set) {
-            set.addAll(getAllSuperclasses(parent, parents));
+            set.addAll(getAllAncestors(parent, parents));
         }
         return set;
     }
@@ -89,7 +95,7 @@ public class ProjectParser {
      *
      * @param className Class to be processed
      * @param parents A map of all classes to their respective parents
-     * @return List of classes
+     * @return Set of classes
      */
     public static Set<String> getSubclasses(String className, Map<String, Set<String>> parents) {
         return parents.entrySet()
@@ -109,10 +115,13 @@ public class ProjectParser {
     public static List<String> getMethodsFromClassFile(ProjectContainer pc, String className) {
         try {
             ClassNode cn = readClassNode(pc.getClassStream(className));
-            return cn.methods.stream()
+            List<String> methods = cn.methods.stream()
                     .map(method -> method.name)
                     .collect(Collectors.toList());
-        }catch (Throwable e) {
+            methods.remove("<init>"); //this method is added by default and is irrelevant for our uses
+            return methods;
+        } catch (Throwable e) {
+            log.error("Error reading class: " + className, e);
             return new ArrayList<>();
         }
     }
@@ -150,6 +159,16 @@ public class ProjectParser {
         }
     }
 
+    /**
+     * Check if a class isn't an interface. If it is, then recursively checks all children, finding the
+     * first non-interface for each child. In the latter case, a list of classes is provided
+     * (i.e., one or more classes per child).
+     *
+     * @param pc Jar or directory containing all class files
+     * @param className Class being tested
+     * @param parents A map of all classes to their respective parents
+     * @return Set of class names
+     */
     public static Set<String> getFirstNonInterfaces(ProjectContainer pc, String className, Map<String, Set<String>> parents) {
         try {
             ClassNode cn = readClassNode(pc.getClassStream(className));

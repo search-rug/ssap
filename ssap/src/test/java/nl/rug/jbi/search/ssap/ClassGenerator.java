@@ -1,35 +1,64 @@
+package nl.rug.jbi.search.ssap;
+
 import org.objectweb.asm.*;
 
 import java.io.IOException;
 
 public class ClassGenerator {
 
+    public static final String BASIC_CLASS = "BasicClass";
+    public static final String ABSTRACT_CLASS = "AbstractClass";
+    public static final String INTERFACE= "Interface";
+    public static final String IMPLEMENTER_CLASS = "ImplementerClass";
+    public static final String EXTENDER_CLASS = "ExtenderClass";
+    public static final String MANY_PARENTS_CLASS = "ManyParentsClass";
+
+    public static final String BASIC_METHOD = "basicMethod";
+
+    public static final String[] ALL_MOCK_CLASSES = new String[]{BASIC_CLASS, ABSTRACT_CLASS, INTERFACE, IMPLEMENTER_CLASS, EXTENDER_CLASS, MANY_PARENTS_CLASS};
+    public static final String[] NO_PARENT_CLASSES = new String[]{BASIC_CLASS};
+    public static final String[] ABSTRACT_AND_EXTENDER = new String[]{ABSTRACT_CLASS, EXTENDER_CLASS};
+    public static final String[] INTERFACE_AND_IMPLEMENTER = new String[]{INTERFACE, IMPLEMENTER_CLASS};
+    public static final String[] MANY_PARENTS_CLASSES = new String[]{ABSTRACT_CLASS, EXTENDER_CLASS, INTERFACE, MANY_PARENTS_CLASS};
+
     /**
      *
      * @return a byte[] representing various classes and an interface
      * @throws IOException
      */
-    public static byte[] generateClasses() throws IOException {
+    public static byte[] generateClass(String className) throws IOException {
         // Create a ClassWriter with COMPUTE_FRAMES and COMPUTE_MAXS flags
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
 
-        // Define the superclass and interfaces
         String superClass = "java/lang/Object";
 
-        // Generate a basic class
-        generateClass(cw, "BasicClass", superClass, null, Opcodes.ACC_PUBLIC);
-
-        // Generate an abstract class extending BasicClass
-        generateClass(cw, "AbstractClass", "BasicClass", new String[0], Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT);
-
-        // Generate an interface
-        generateInterface(cw, "Interface");
-
-        // Generate a class implementing Interface
-        generateClass(cw, "ImplementerClass", superClass, new String[]{"Interface"}, Opcodes.ACC_PUBLIC);
-
-        // Generate a class extending ImplementerClass
-        generateClass(cw, "ExtenderClass", "ImplementerClass", new String[0], Opcodes.ACC_PUBLIC);
+        switch (className) {
+            case BASIC_CLASS:
+                // Generate a basic class
+                visitClass(cw, BASIC_CLASS, superClass, null, Opcodes.ACC_PUBLIC);
+                break;
+            case ABSTRACT_CLASS:
+                // Generate an abstract class
+                visitClass(cw, ABSTRACT_CLASS, superClass, new String[0], Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT);
+                break;
+            case EXTENDER_CLASS:
+                // Generate a class extending the abstract class
+                visitClass(cw, EXTENDER_CLASS, ABSTRACT_CLASS, new String[0], Opcodes.ACC_PUBLIC);
+                break;
+            case INTERFACE:
+                // Generate an interface
+                generateInterface(cw, INTERFACE);
+                break;
+            case IMPLEMENTER_CLASS:
+                // Generate a class implementing the interface
+                visitClass(cw, IMPLEMENTER_CLASS, superClass, new String[]{INTERFACE}, Opcodes.ACC_PUBLIC);
+                break;
+            case MANY_PARENTS_CLASS:
+                // Generate a class that implements an interface and extends a superclass that itself has a paraent
+                visitClass(cw, MANY_PARENTS_CLASS, EXTENDER_CLASS, new String[]{INTERFACE}, Opcodes.ACC_PUBLIC);
+            default:
+                break;
+        }
 
         return cw.toByteArray();
     }
@@ -42,7 +71,7 @@ public class ClassGenerator {
      * @param interfaces interfaces implemented by the generated class
      * @param access what kind of access the class should have, e.g. public (=1)
      */
-    private static void generateClass(ClassWriter cw, String className, String superClass, String[] interfaces, int access) {
+    private static void visitClass(ClassWriter cw, String className, String superClass, String[] interfaces, int access) {
         // Visiting the class we're generating
         cw.visit(Opcodes.V1_8, access, className, null, superClass, interfaces);
 
@@ -55,12 +84,14 @@ public class ClassGenerator {
         constructor.visitMaxs(1, 1);
         constructor.visitEnd();
 
-        // Creating a method
-        MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "basicMethod", "()V", null, null);
-        mv.visitCode();
-        mv.visitInsn(Opcodes.RETURN);
-        mv.visitMaxs(1, 1);
-        mv.visitEnd();
+        // Creating a method; the abstract class will only have an abstract method
+        MethodVisitor mv = cw.visitMethod(access, BASIC_METHOD, "()V", null, null);
+        if (!className.equals(ABSTRACT_CLASS)) {
+            mv.visitCode();
+            mv.visitInsn(Opcodes.RETURN);
+            mv.visitMaxs(1, 1);
+            mv.visitEnd();
+        }
 
         // End the class definition
         cw.visitEnd();
