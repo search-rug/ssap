@@ -14,6 +14,22 @@ SSA+ takes as input the output of SSA, and is able to identify 10 extra roles ba
 * Concrete Class, for Template Method pattern; and
 * Subject, for Proxy pattern.
 
+#### Usage
+The program uses [PicoCli](https://picocli.info/#_introduction) to work as a command line executable.
+
+Usage: 
+````
+ssap [-hV] [-o=<outputFile>] <ssaFile> <project>
+
+      <ssaFile>   XML file from SSA tool
+      <project>   A .jar or Folder containing the project's .class files
+  -h, --help      Show this help message and exit.
+  -o, --output=<outputFile>
+                  Output XML file (default: write to the ssaFile)
+  -V, --version   Print version information and exit.
+
+````
+
 #### References
 
 {1} N. Tsantalis, A. Chatzigeorgiou, G. Stephanides, and S. T. Halkidis, “Design pattern detection using similarity scoring,” Softw. Eng. IEEE Trans., vol. 32, no. 11, pp. 896–909, 2006.
