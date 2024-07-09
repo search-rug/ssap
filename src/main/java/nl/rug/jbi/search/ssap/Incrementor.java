@@ -9,10 +9,7 @@ import nl.rug.jbi.search.ssap.util.ProjectParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -75,23 +72,29 @@ public class Incrementor {
 
     /** Updates an instance of Factory Method by adding ConcreteCreator's and Product's. */
     private static void incrementFactoryMethod(Instance instance, Map<String, Set<String>> parents) {
+        List<Role> newRoles = new ArrayList<>();
         instance.roleList.stream().filter(role -> role.name.equals(Constants.CREATOR)).forEach(r -> {
             for (Map.Entry<String, Set<String>>  parent : parents.entrySet()) {
                 if (parent.getValue().contains(r.element)) {
-                    instance.roleList.add(new Role(parent.getKey(), Constants.CONCRETE_CREATOR));
+                    newRoles.add(new Role(parent.getKey(), Constants.CONCRETE_CREATOR));
                 }
             }
         });
 
         instance.roleList.stream().filter(role -> role.name.equals(Constants.FACTORY_METHOD_PARENTHESIS)).forEach(r -> {
             Matcher matcher = elementRegex.matcher(r.element);
-            try {
-                String rName = matcher.group(3);
-                instance.roleList.add(new Role(rName, Constants.PRODUCT));
-            } catch (Exception e) {
-                logger.debug("FactoryMethod: no elementRegex match");
+
+            if (matcher.matches()) {
+                try {
+                    String rName = matcher.group(3);
+                    newRoles.add(new Role(rName, Constants.PRODUCT));
+                } catch (Exception e) {
+                    logger.error("FactoryMethod: no elementRegex match");
+                }
             }
         });
+
+        instance.roleList.addAll(newRoles);
     }
 
     /** Updates an instance of Prototype by adding ConcretePrototype's. */
@@ -116,6 +119,7 @@ public class Incrementor {
 
     /** Updates an instance of Decorator by adding ConcreteDecorator's and ConcreteComponent's. */
     private static void incrementDecorator(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc) {
+        List<Role> newRoles = new ArrayList<>();
         List<String> candidates = getCandidates(instance, parents, pc);
         List<String> decorators = instance.roleList.stream()
                 .filter(r -> r.name.equals(Constants.DECORATOR))
@@ -128,8 +132,9 @@ public class Incrementor {
                             .map(p -> ProjectParser.getFirstNonInterfaces(pc, p.getKey(), parents))
                             .flatMap(Collection::stream)
                             .distinct()
-                            .forEach(cc -> instance.roleList.add(new Role(cc, Constants.CONCRETE_DECORATOR)));
+                            .forEach(cc -> newRoles.add(new Role(cc, Constants.CONCRETE_DECORATOR)));
                 });
+        instance.roleList.addAll(newRoles);
         List<String> concrDecorators = instance.roleList.stream()
                 .filter(r -> r.name.equals(Constants.CONCRETE_DECORATOR))
                 .map(r -> r.element)
@@ -194,14 +199,16 @@ public class Incrementor {
 
     /** Add new roles from non-interface classes */
     private static void addRolesFromNonInterfaces(Instance instance, Map<String, Set<String>> parents, ProjectContainer pc, String filter, String roleName) {
+        List<Role> newRoles = new ArrayList<>();
         instance.roleList.stream().filter(role -> role.name.equals(filter)).forEach(r -> {
             parents.entrySet().stream()
                     .filter(parent -> parent.getValue().contains(r.element))
                     .map(parent -> ProjectParser.getFirstNonInterfaces(pc, parent.getKey(), parents))
                     .flatMap(Collection::stream)
                     .distinct()
-                    .forEach(s -> instance.roleList.add(new Role(s, roleName)));
+                    .forEach(s -> newRoles.add(new Role(s, roleName)));
         });
+        instance.roleList.addAll(newRoles);
     }
 
     /** Updates an instance of Proxy by adding Subject. */
