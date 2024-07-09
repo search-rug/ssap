@@ -14,12 +14,23 @@ SSA+ takes as input the output of SSA, and is able to identify 10 extra roles ba
 * Concrete Class, for Template Method pattern; and
 * Subject, for Proxy pattern.
 
+#### Prerequisites
+* Java 21
+* Maven
+
+#### Build
+This project uses Maven. To build the project, use the following command in the `ssap` folder:
+
+````
+mvn clean package
+````
+
 #### Usage
 The program uses [PicoCli](https://picocli.info/#_introduction) to work as a command line executable.
 
 Usage: 
 ````
-ssap [-hV] [-o=<outputFile>] <ssaFile> <project>
+java -jar ssap-2.0.jar [-hV] [-o=<outputFile>] <ssaFile> <project>
 
       <ssaFile>   XML file from SSA tool
       <project>   A .jar or Folder containing the project's .class files
@@ -29,6 +40,8 @@ ssap [-hV] [-o=<outputFile>] <ssaFile> <project>
   -V, --version   Print version information and exit.
 
 ````
+
+Note: if you do not call the command from the `target` folder (created by the `mvn` command). If that is not the case, you will need to provide the path to the `.jar` file. 
 
 #### References
 
