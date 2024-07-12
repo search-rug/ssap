@@ -153,16 +153,20 @@ public class Incrementor {
         List<String> methods = instance.roleList.stream()
                 .filter(r -> r.name.equals(Constants.OPERATION_PARENTHESIS))
                 .map(role -> {
+                    String mName = "";
                     Matcher elemnetMatcher = elementRegex.matcher(role.element);
-                    try {
-                        String mSign = elemnetMatcher.group(2);
-                        Matcher methodMatcher = methodRegex.matcher(mSign);
-                        String mName = methodMatcher.group(1);
-                        return mName;
-                    } catch (Exception e) {
-                        logger.debug("getCandidates: no elementRegex or methodRegex match");
-                        return "";
+                    if (elemnetMatcher.matches()) {
+                        try {
+                            String mSign = elemnetMatcher.group(2);
+                            Matcher methodMatcher = methodRegex.matcher(mSign);
+                            if (methodMatcher.matches()) {
+                                mName = methodMatcher.group(1);
+                            }
+                        } catch (Exception e) {
+                            logger.debug("getCandidates: no elementRegex or methodRegex match");
+                        }
                     }
+                    return mName;
                 })
                 .filter(s -> !s.equals(""))
                 .collect(Collectors.toList());
@@ -218,25 +222,31 @@ public class Incrementor {
         Set<String> proxyParents = ProjectParser.getAllAncestors(proxy, parents);
         Set<String> rsParents = ProjectParser.getAllAncestors(realSubject, parents);
         String roleElement = findFirstElement(instance, Constants.REQUEST_PARANTHESIS);
-        String mName;
-        try {
-            Matcher elementMatcher = elementRegex.matcher(roleElement);
-            String mSign = elementMatcher.group(2);
-            Matcher methodMatcher = methodRegex.matcher(mSign);
-            mName = methodMatcher.group(1);
-        } catch (Exception e) {
-            logger.debug("incrementProxy: no elementRegex or methodRegex match");
-            return;
+        String mName="";
+        Matcher elementMatcher = elementRegex.matcher(roleElement);
+        if (elementMatcher.matches()) {
+            try {
+                String mSign = elementMatcher.group(2);
+                Matcher methodMatcher = methodRegex.matcher(mSign);
+                if (methodMatcher.matches()) {
+                    mName = methodMatcher.group(1);
+                }
+            } catch (Exception e) {
+                logger.debug("incrementProxy: no elementRegex or methodRegex match");
+                return;
+            }
         }
+        if (!mName.isEmpty()) {
+            String finalMName = mName;
+            proxyParents.stream()
+                    .filter(rsParents::contains)
+                    .forEach(s -> {
+                        if (parents.containsKey(s) && ProjectParser.getMethodsFromClassFile(pc, s).contains(finalMName)) {
+                            instance.roleList.add(new Role(s, Constants.SUBJECT));
+                        }
 
-        proxyParents.stream()
-                .filter(rsParents::contains)
-                .forEach(s -> {
-                    if (parents.containsKey(s) && ProjectParser.getMethodsFromClassFile(pc, s).contains(mName)) {
-                        instance.roleList.add(new Role(s, Constants.SUBJECT));
-                    }
-
-                });
+                    });
+        }
     }
 
     /** Find the first element of the instance that matches the given filter. */

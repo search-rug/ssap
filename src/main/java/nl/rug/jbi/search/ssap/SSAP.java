@@ -35,7 +35,7 @@ public class SSAP implements Callable<Integer> {
     @Parameters(index = "1", description = "A .jar or Folder containing the project's .class files")
     private File project;
 
-    @Option(names = {"-o", "--output"}, description = "Output XML file (default: write to the ssaFile)")
+    @Option(names = {"-o", "--output"}, description = "Output XML file (default:  \"./<ssaFile>.ssap.xml\"")
     private File outputFile;
 
     private static void initializeXStream() {
