@@ -1,0 +1,68 @@
+<system>
+  <pattern name="Factory Method">
+    <instance>
+      <role name="Creator" element="org.example.service.DocumentService"/>
+      <role name="FactoryMethod()" element="org.example.service.DocumentService::toDto(org.example.model.Document, java.util.List):org.example.dto.BaseDocumentDTO"/>
+      <role name="FactoryMethod()" element="org.example.service.DocumentService::toFullDto(org.example.model.Document):org.example.dto.BaseDocumentDTO$DocumentFullDTO"/>
+    </instance>
+    <instance>
+      <role name="Creator" element="org.example.service.MeterService"/>
+      <role name="FactoryMethod()" element="org.example.service.MeterService::getMeterDTOById(java.lang.Long):org.example.dto.MeterDTO"/>
+      <role name="FactoryMethod()" element="org.example.service.MeterService::toProxyDto(org.example.model.Meter):org.example.dto.MeterDTO"/>
+      <role name="FactoryMethod()" element="org.example.service.MeterService::toProxyDto(org.example.model.MeterFull, java.util.List):org.example.dto.MeterDTO$MeterFullDTO"/>
+    </instance>
+  </pattern>
+  <pattern name="Prototype"/>
+  <pattern name="Singleton">
+    <instance>
+      <role name="Singleton" element="org.example.dto.ActionStatusDTO$STATUS"/>
+      <role name="uniqueInstance" element="public static org.example.dto.ActionStatusDTO$STATUS OK"/>
+      <role name="uniqueInstance" element="public static org.example.dto.ActionStatusDTO$STATUS ERROR"/>
+    </instance>
+    <instance>
+      <role name="Singleton" element="org.example.errorhandler.AppError"/>
+      <role name="uniqueInstance" element="public static org.example.errorhandler.AppError METERDOCUMENT_NOT_FOUND"/>
+      <role name="uniqueInstance" element="public static org.example.errorhandler.AppError METER_PIN_NOT_FOUND"/>
+      <role name="uniqueInstance" element="public static org.example.errorhandler.AppError METER_PIN_AND_NUMBER_NOT_FOUND"/>
+      <role name="uniqueInstance" element="public static org.example.errorhandler.AppError METER_CODE_NOT_FOUND"/>
+      <role name="uniqueInstance" element="public static org.example.errorhandler.AppError METER_COULD_NOT_BE_UPDATED"/>
+    </instance>
+    <instance>
+      <role name="Singleton" element="org.example.model.QBaseEntity"/>
+      <role name="uniqueInstance" element="public static org.example.model.QBaseEntity baseEntity"/>
+    </instance>
+    <instance>
+      <role name="Singleton" element="org.example.model.QDocument"/>
+      <role name="uniqueInstance" element="public static org.example.model.QDocument bill"/>
+    </instance>
+  </pattern>
+  <pattern name="(Object)Adapter-Command">
+    <instance>
+      <role name="Adaptee/Receiver" element="org.example.repository.MeterRepository"/>
+      <role name="Adapter/ConcreteCommand" element="org.example.service.impl.DocumentServiceImpl"/>
+      <role name="Request()/Execute()" element="org.example.service.impl.DocumentServiceImpl::getDocumentePaymentFromDTO(org.example.dto.DocumentePaymentDTO):org.example.model.DocumentePayment"/>
+    </instance>
+    <instance>
+      <role name="Adaptee/Receiver" element="org.example.repository.DocumentURepository"/>
+      <role name="Adapter/ConcreteCommand" element="org.example.service.impl.DocumentServiceImpl"/>
+      <role name="Request()/Execute()" element="org.example.service.impl.DocumentServiceImpl::updateDocumentMailSent(org.example.dto.BaseDocumentDTO):org.example.model.DocumentU"/>
+    </instance>
+  </pattern>
+  <pattern name="Composite"/>
+  <pattern name="Decorator"/>
+  <pattern name="Observer"/>
+  <pattern name="State-Strategy">
+    <instance>
+      <role name="State/Strategy" element="org.example.service.DocumentService"/>
+      <role name="Context" element="org.example.controller.MeterController"/>
+    </instance>
+    <instance>
+      <role name="Context" element="org.example.errorhandler.AppErrorReport"/>
+      <role name="State/Strategy" element="org.example.util.config.MessageSourceProvider"/>
+    </instance>
+  </pattern>
+  <pattern name="Template Method"/>
+  <pattern name="Visitor"/>
+  <pattern name="Proxy"/>
+  <pattern name="Proxy2"/>
+</system>
